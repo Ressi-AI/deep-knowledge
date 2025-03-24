@@ -132,7 +132,6 @@ We're working on enhancing the system's reliability when LLMs don't precisely fo
 Plans to expand OCR options include:
 - Supporting additional OCR providers
 - Implementing local OCR processing options
-- Improving detection of scanned content
 
 ## Contributing
 

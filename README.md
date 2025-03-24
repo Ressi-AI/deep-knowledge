@@ -29,7 +29,6 @@ This approach ensures that summaries retain the original content's structure whi
 - **Token-aware processing**: Intelligently manages content to work within model context limitations
 - **Langchain integration**: Seamlessly works with Langchain chat models
 - **Visual mind mapping**: Generates comprehensive mind maps to visualize content structure
-- **Langchain Integration**: Works with all LLMs supported by Langchain
 
 ## Installation
 

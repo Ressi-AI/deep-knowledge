@@ -33,9 +33,21 @@ from deep_knowledge.summary.prompts import (
     initial_prompt_content_synthesizer,
 )
 
+"""
+Possible streaming data:
+- while generating with LLM: data = {"type": "generation", "content": "generated content"}
+- other events: data = {"type": "event", **kwargs, "content": "event content"}
+"""
 
-def default_stream_callback(content):
-    print(content, end="", flush=True)
+
+def default_stream_callback(data):
+    if data["type"] == "event":
+        kwargs = {k: v for k, v in data.items() if k not in ["type", "content"]}
+        logger.info(f"{kwargs}: {data.get('content', '')}")
+        return
+    if data["type"] == "generation":
+        print(data["content"], end="", flush=True)
+        return
 
 
 class Summary:
@@ -162,6 +174,8 @@ class Summary:
         return
 
     def generate_mind_map(self):
+        if self.streaming_callback is not None:
+            self.streaming_callback({"type": "event", "event_type": "start", "stage": "mind_map", "content": "Generating Mind Map"})
         logger.info("=== Step 1 === Generating Mind Map")
         self.mind_map = self.llm.get_chat_response(
             messages=[
@@ -172,9 +186,13 @@ class Summary:
             streaming_callback=self.streaming_callback,
             cost_callback=partial(self._cost_callback, model=self.litellm_model_name),
         )
+        if self.streaming_callback is not None:
+            self.streaming_callback({"type": "event", "event_type": "stop", "stage": "mind_map", "content": "Finished generating Mind Map"})
         return
 
     def generate_summary_architecture(self):
+        if self.streaming_callback is not None:
+            self.streaming_callback({"type": "event", "event_type": "start", "stage": "summary_architect", "content": "Generating Summary Architecture"})
         logger.info("=== Step 2 === Generating Summary Architecture")
         self.summary_architecture = self.llm.get_chat_response(
             messages=[
@@ -191,9 +209,13 @@ class Summary:
         self.summary_modules = extract_modules(architect_output=self.summary_architecture)
         wc = sum([x.word_count for x in self.summary_modules])
         logger.info(f"Final summary is attempting to be {wc} words long")
+        if self.streaming_callback is not None:
+            self.streaming_callback({"type": "event", "event_type": "stop", "stage": "summary_architect", "content": "Finished generating Summary Architecture"})
         return
 
     def generate_full_summary(self):
+        if self.streaming_callback is not None:
+            self.streaming_callback({"type": "event", "event_type": "start", "stage": "content_synthesizer", "content": "Generating Full Summary"})
         logger.info("=== Step 3 === Generating Full Summary")
         batches = batch_modules(modules=self.summary_modules)
         dump_all_modules = "\n".join([x.module_heading for x in self.summary_modules])
@@ -230,6 +252,8 @@ class Summary:
         else:
             dump_summary = "\n\n".join([f"## {x.module_title}\n{x.full_content}" for x in syntheses])
         self.output = f"""# MIND MAP\n{self.mind_map}\n\n# SUMMARY\n{dump_summary}"""
+        if self.streaming_callback is not None:
+            self.streaming_callback({"type": "event", "event_type": "stop", "stage": "content_synthesizer", "content": "Finished generating Full Summary"})
         return
 
 

@@ -187,7 +187,7 @@ class GenericLLMProvider:
             if content is not None:
                 response += content
                 if streaming_callback is not None:
-                    streaming_callback(content)
+                    streaming_callback({"type": "generation", "content": content})
 
         if cost_callback is not None:
             cost_callback(output=chunk, messages=messages, output_content=response)

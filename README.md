@@ -54,6 +54,14 @@ summary.run()
 print(summary.output)
 ```
 
+## Streamlit Demo
+We created a Streamlit demo to showcase the Deep Knowledge summarization pipeline. To run the demo, follow these steps:
+
+```bash
+export PYTHONPATH=$PYTHONPATH:"$(pwd)"
+streamlit run demo/streamlit_app.py
+```
+
 ## Langchain Integration
 
 Deep Knowledge integrates smoothly with Langchain chat models. You can provide your own Langchain chat model, or use the "auto" option which intelligently selects the best available model:
@@ -103,6 +111,18 @@ Current implementation can be expensive as it sends the full content to each mod
 
 However, using Google Gemini Flash models allows for free/low-cost experimentation
 
+### Interactive Refinement and Follow-ups
+The current pipeline operates as a single-pass process, but users often need to refine outputs based on initial results.
+- Enabling conversational interactions to shape the summarization process
+- Allowing targeted refinement of specific modules without regenerating the entire summary
+
+### Adding possibility to configure LLM based on step
+Now, there's only one LLM that works for all steps.
+But it would be a good feature to allow experimentation with different LLMs for different steps. E.g.:
+- gpt-4o for the Mind Map Agent
+- o1 for the Summary Architect
+- gemini-2.0-flash for the Content Synthesizer
+
 ### Improved Reproducibility
 We're working on enhancing the system's reliability when LLMs don't precisely follow the expected output format, including:
 - More robust output parsing
@@ -121,4 +141,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the Apache 2.0 License - see the LICENSE file for details.

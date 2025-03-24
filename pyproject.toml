@@ -1,7 +1,7 @@
 [project]
 name = "deep-knowledge"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.1.1"
+description = "Deep Knowledge introduces a powerful multi-agent system for creating deep, comprehensive summaries of complex content."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -12,5 +12,7 @@ dependencies = [
     "langchain-pymupdf4llm>=0.2.0",
     "litellm>=1.63.14",
     "loguru>=0.7.3",
+    "python-decouple>=3.8",
     "python-dotenv>=1.0.1",
+    "streamlit>=1.43.2",
 ]

@@ -11,7 +11,7 @@ Explore summary examples for these well-known titles:
 
 ### Pixar Style *(The Story Spine)*
 A playful, story-driven summary inspired by Pixar's storytelling formula:
-![Pixar Style](./pixar.jpeg)
+<img src="./pixar.jpeg" alt="Pixar Style" style="width:50%;">
 
 ### Default (Neutral)
 Concise, neutral summaries ideal for quick refreshers or general overviews.

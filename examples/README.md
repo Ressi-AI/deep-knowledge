@@ -18,8 +18,6 @@ A playful, story-driven summary inspired by Pixar's storytelling formula:
 - **Until finally…** *(Climax of the story)*
 - **And ever since…** *(The new normal)*
 
-> *Tip: Set a strong structure first, then enrich with engaging details.*
-
 ### Default (Neutral)
 Concise, neutral summaries ideal for quick refreshers or general overviews.
 

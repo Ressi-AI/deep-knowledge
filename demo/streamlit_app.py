@@ -109,7 +109,7 @@ with st.sidebar:
                                 help="Automatically chooses the best available model based on API keys. Above settings will be ignored.")
 
     # Language input
-    language = st.text_input("Language", environ("STREAMLIT_SUMMARY_DEFAULT_LANGUAGE", default="original language of the content"))
+    language = st.text_input("Language", environ("STREAMLIT_SUMMARY_DEFAULT_LANGUAGE", default="English"))
 
     # File uploader
     st.header("Upload Content")
@@ -289,7 +289,7 @@ else:
                 s = Summary(
                     llm=llm,
                     input_path=file_path,
-                    language=language if language.lower() != "original language of the content" else None,
+                    language=language,
                     stream=True,
                     extra_instructions=extra_instructions,
                     streaming_callback=streaming_callback,

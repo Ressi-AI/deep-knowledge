@@ -1,6 +1,6 @@
 section_content = "# CONTENT\n<content>\n{content}\n</content>"
 section_mind_map = "# MIND MAP\n<mind_map>\n{mind_map}\n</mind_map>"
-default_language = "the language in which the content is written"
+default_language = "English"
 
 # MIND MAP
 def system_prompt_mind_map_structural(language=None):

@@ -1,6 +1,6 @@
 [project]
 name = "deep-knowledge"
-version = "0.1.2"
+version = "0.1.3"
 description = "Deep Knowledge introduces a powerful multi-agent system for creating deep, comprehensive summaries of complex content."
 readme = "README.md"
 requires-python = ">=3.11"

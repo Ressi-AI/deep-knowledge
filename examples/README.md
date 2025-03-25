@@ -11,12 +11,7 @@ Explore summary examples for these well-known titles:
 
 ### Pixar Style *(The Story Spine)*
 A playful, story-driven summary inspired by Pixar's storytelling formula:
-- **Once upon a time…** *(Set the stage)*
-- **Every day…** *(Hero's daily routine)*
-- **But one day…** *(Routine disrupted)*
-- **Because of that…** *(Efforts to regain balance)*
-- **Until finally…** *(Climax of the story)*
-- **And ever since…** *(The new normal)*
+![Pixar Style](./pixar.jpeg)
 
 ### Default (Neutral)
 Concise, neutral summaries ideal for quick refreshers or general overviews.

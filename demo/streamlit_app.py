@@ -1,4 +1,5 @@
 import os
+import uuid
 import streamlit as st
 import sqlite3
 from datetime import datetime
@@ -60,6 +61,16 @@ def get_summary(summary_id):
     c = conn.cursor()
     c.execute('SELECT * FROM history WHERE id = ?', (summary_id,))
     return c.fetchone()
+
+
+def on_copy_click(text, context=None):
+    if context is None:
+        st.code(text)
+    else:
+        with context:
+            st.code(text)
+    st.toast("You'll see the message in a separate window from where you can perform the copy operation", icon='✅')
+    return
 
 
 # Initialize session state variables
@@ -129,7 +140,16 @@ if selected_history:
     st.markdown(summary_record[7])  # extra_instructions
 
     st.subheader("Summary Output")
-    st.markdown(summary_record[8])  # output
+    output_content = summary_record[8]  # output
+    st.markdown(output_content)
+
+    st.button(
+        label="📋 Copy to clipboard",
+        key=str(uuid.uuid4()),
+        on_click=on_copy_click,
+        args=(output_content,),
+        help="Copy text response to clipboard"
+    )
 else:
     # Create new summary
     extra_instructions = st.text_area(
@@ -177,6 +197,13 @@ else:
             if st.session_state.final_output:
                 final_output_placeholder.markdown(st.session_state.final_output)
 
+            st.button(
+                label="📋 Copy to clipboard",
+                key=str(uuid.uuid4()),
+                on_click=on_copy_click,
+                args=(st.session_state.final_output,),
+                help="Copy text response to clipboard"
+            )
 
         # Define streaming callback
         def streaming_callback(data):

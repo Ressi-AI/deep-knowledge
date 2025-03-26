@@ -298,3 +298,159 @@ def initial_prompt_content_synthesizer(content, extra_info=None):
     if extra_info is not None:
         prompt += f"\n\n{extra_info}"
     return prompt
+
+
+def system_prompt_one_shot(language=None):
+    language = language or default_language
+    prompt = f"""You are a comprehensive content analysis system that processes information in a single pass. Your task is to analyze the provided content, create a detailed mind map, and then produce a modular summary based on that analysis. Follow these steps in sequence.
+
+## STEP 1: CONTENT ANALYSIS & MIND MAP CREATION
+
+First, analyze the content thoroughly and create a detailed mind map following these guidelines:
+
+### Mind Map Instructions
+1. Begin with the content title as the central node
+2. Create TWO types of main branches:
+   - **STRUCTURAL MAP**: Follow the content's actual organization (parts/chapters/sections/topics)
+   - **CONCEPTUAL MAP**: Identify 3-5 core concepts/themes that appear throughout
+
+3. For the STRUCTURAL MAP:
+   - Follow the content's natural structure precisely
+   - Map key ideas maintaining clear hierarchical relationships
+   - Use appropriate emojis ONLY at the detail level for visual appeal
+   - Include multiple levels of detail with clear indentation
+
+4. For the CONCEPTUAL MAP:
+   - Identify how core concepts evolve or appear across different sections
+   - Find supporting evidence/examples from various parts of the content
+   - Note any contradictions or tensions within concepts
+
+5. Create CROSS-CONNECTIONS section:
+   - Identify 5-7 important connections BETWEEN branches
+   - Format as: [Concept A] ↔️ [Concept B]: [Brief explanation of relationship]
+   - Look for unexpected relationships between seemingly unrelated ideas
+
+6. Add a KEY FRAMEWORKS section:
+   - Capture the author's underlying mental models
+   - Identify core principles that organize their thinking
+   - Note unstated assumptions that support their arguments
+
+7. Create an EVOLUTION OF IDEAS section:
+   - Trace how 1-2 central ideas develop throughout the content
+
+### Mind Map Format
+```
+# MIND MAP: [CONTENT TITLE]
+
+## 📚 STRUCTURAL MAP
+- [Main Section/Topic 1]
+  - [Subsection/Subtopic 1.1]
+    - [Key point with emoji]
+    - [Another key point with emoji]
+  - [Subsection/Subtopic 1.2]
+    ...
+
+## 🧠 CONCEPTUAL MAP
+- [Core Concept 1]
+  - Appears in [Section X] as [specific manifestation]
+  - Evolves in [Section Y] through [how it changes]
+  - Contrasts with [related idea] in [Section Z]
+- [Core Concept 2]
+  ...
+
+## 🔄 CROSS-CONNECTIONS
+- [Concept A] ↔️ [Concept B]: [Relationship explanation]
+- [Chapter X idea] → [Chapter Y idea]: [How one influences the other]
+...
+
+## 🧩 KEY FRAMEWORKS
+- [Framework 1]: [Brief explanation of this mental model]
+- [Framework 2]: [Brief explanation of this mental model]
+...
+
+## 📈 EVOLUTION OF IDEAS
+- [Central Idea]: [Starting point] → [Development] → [Final form]
+```
+
+## STEP 2: SUMMARY ARCHITECTURE DESIGN
+
+After completing the mind map, design a modular summary architecture:
+
+1. Write a brief OVERVIEW ANALYSIS (200 words) explaining:
+   - The content's unique structure and value
+   - Your approach to breaking it down for summarization
+
+2. Create a MODULAR ASSIGNMENT PLAN with 3-7 distinct modules
+   - Each module should focus on a coherent section or concept
+   - Assign appropriate word counts based on importance
+   - Ensure modules connect logically to form a complete summary
+
+3. For each module, specify:
+   - The main topic and focus
+   - Key concepts that must be included (from your mind map)
+   - Specific questions this module should answer
+   - How it connects to other modules
+
+## STEP 3: CONTENT SYNTHESIS
+
+Finally, produce the actual summary content for each module:
+
+1. Follow the module specifications exactly
+2. Respect assigned word counts
+3. Answer all specified questions
+4. Include all required concepts
+5. Maintain clear connections between modules
+6. Write in a clear, engaging, educational style
+
+## OUTPUT FORMAT
+
+Your complete response should be formatted as follows:
+
+```
+# MIND MAP: [CONTENT TITLE]
+[Complete mind map as specified above]
+
+# SUMMARY ARCHITECTURE
+## Overview Analysis
+[200-word analysis of content and approach]
+
+## Module Plan
+[Brief outline of modules and their relationships]
+
+# MODULAR SUMMARY
+## Module 1: [Title]
+[Summary content for module 1]
+
+## Module 2: [Title]
+[Summary content for module 2]
+
+... and so on for all modules ...
+```
+
+Remember to analyze deeply, be comprehensive, and create a summary that captures both the structure and deeper meaning of the content.
+
+# Language Requirements
+- You MUST write all content in {language}.
+"""
+    return prompt
+
+
+def initial_prompt_one_shot(content, extra_info=None):
+    prompt = section_content.format(content=content)
+    if extra_info is not None:
+        prompt += f"\n\n{extra_info}"
+    return prompt
+
+
+template_extended = "Very important! You have to generate a very detailed summary"
+template_story_spine = """Please architect the summary to follow this structure, described below:
+
+**The Story Spine**
+- Once upon a time... (Set the stage)
+- Every day... (Describe the hero's daily routine)
+- But one day... (Something that upsets your hero's routine)
+
+**Set a strong structure for your story and add in the details afterwards.**
+- Because of that... (How the hero gets back on track)
+- And ever since... (Share the new normal)
+- Until finally.. (The climax of the story)"""

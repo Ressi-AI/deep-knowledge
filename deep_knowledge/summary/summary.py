@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import Optional, Literal
 from collections import defaultdict
 from threading import Lock
 from functools import partial
@@ -31,6 +31,12 @@ from deep_knowledge.summary.prompts import (
 
     system_prompt_content_synthesizer,
     initial_prompt_content_synthesizer,
+
+    system_prompt_one_shot,
+    initial_prompt_one_shot,
+
+    template_extended,
+    template_story_spine,
 )
 
 """
@@ -61,14 +67,19 @@ class Summary:
             language: Optional[str] = None,
             stream: Optional[bool] = False,
             streaming_callback: Optional[callable] = None,
+            target_word_count: Optional[int] = None,
+            template: Literal["extended", "story_spine"] | None = None,
+            one_shot: Optional[bool] = None,
     ):
-        self.llm = get_llm(llm)
+        self.llm, self.one_shot = get_llm(llm, one_shot)
         self.model_name = model_name_from_langchain_instance(self.llm.llm)
         _, self.litellm_model_name = model_cost(self.model_name)
         self.input_path = input_path
         self.input_documents = input_documents
         self.input_content = input_content
-        self.extra_instructions = extra_instructions
+        self.target_word_count = target_word_count
+        self.template = template
+        self._extra_instructions = extra_instructions
         self.stream = stream
         self.streaming_callback = streaming_callback
         if self.stream and self.streaming_callback is None:
@@ -84,6 +95,23 @@ class Summary:
         self.token_usage = defaultdict(lambda: {"prompt_tokens": 0, "completion_tokens": 0})
         self.token_usage_lock = Lock()
         return
+
+    @property
+    def extra_instructions(self):
+        extra_instructions = self._extra_instructions or ""
+        extra_instructions += "\n\n"
+        if self.template == "extended":
+            extra_instructions += template_extended
+            if self.target_word_count is None:
+                self.target_word_count = 7000
+        if self.template == "story_spine":
+            extra_instructions += template_story_spine
+            if self.target_word_count is None:
+                self.target_word_count = 750
+
+        extra_instructions += f"\nVery important! Your summary should count approximately {self.target_word_count} words."
+        extra_instructions = extra_instructions.strip()
+        return extra_instructions
 
     def _cost_callback(self, output, model, messages=None, output_content=None):
         if not hasattr(output, "usage_metadata"):
@@ -116,8 +144,8 @@ class Summary:
             "total": 0,
         }
         for model, usage in self.token_usage.items():
-            cost["prompt"] += usage["prompt_tokens"] * dct_model_cost[model]["input_cost_per_token"]
-            cost["completion"] += usage["completion_tokens"] * dct_model_cost[model]["output_cost_per_token"]
+            cost["prompt"] += usage["prompt_tokens"] * dct_model_cost.get(model, {}).get("input_cost_per_token", 0)
+            cost["completion"] += usage["completion_tokens"] * dct_model_cost.get(model, {}).get("output_cost_per_token", 0)
 
         cost["total"] = cost["prompt"] + cost["completion"]
         return cost
@@ -167,9 +195,12 @@ class Summary:
     def run(self):
         self.prepare_content()
         self.final_input = content_for_model(content=self.content, model_name=self.model_name)
-        self.generate_mind_map()
-        self.generate_summary_architecture()
-        self.generate_full_summary()
+        if not self.one_shot:
+            self.generate_mind_map()
+            self.generate_summary_architecture()
+            self.generate_full_summary()
+        else:
+            self.generate_full_summary_one_shot()
         self.log_usage()
         return
 
@@ -211,6 +242,25 @@ class Summary:
         logger.info(f"Final summary is attempting to be {wc} words long")
         if self.streaming_callback is not None:
             self.streaming_callback({"type": "event", "event_type": "stop", "stage": "summary_architect", "content": "Finished generating Summary Architecture"})
+        return
+
+    def generate_full_summary_one_shot(self):
+        if self.streaming_callback is not None:
+            self.streaming_callback({"type": "event", "event_type": "start", "stage": "one_shot", "content": "Generating Full Summary"})
+
+        self.output = self.llm.get_chat_response(
+            messages=[
+                SystemMessage(system_prompt_one_shot(language=self.language)),
+                HumanMessage(initial_prompt_one_shot(content=self.final_input, extra_info=self.extra_instructions))
+            ],
+            stream=self.stream,
+            streaming_callback=self.streaming_callback,
+            cost_callback=partial(self._cost_callback, model=self.litellm_model_name),
+        )
+
+        if self.streaming_callback is not None:
+            self.streaming_callback({"type": "event", "event_type": "stop", "stage": "one_shot", "content": "Finished generating Full Summary"})
+
         return
 
     def generate_full_summary(self):
@@ -257,19 +307,19 @@ class Summary:
         return
 
 
-def get_llm(llm: BaseChatModel | str = "auto"):
+def get_llm(llm: BaseChatModel | str = "auto", one_shot: Optional[bool] = None):
     if isinstance(llm, str):
         if all([os.environ.get(x) is None for x in ["OPENAI_API_KEY", "GOOGLE_API_KEY"]]):
             raise ValueError("Auto mode working only with OpenAI or Google API keys. None of them detected.")
 
         if os.environ.get("GOOGLE_API_KEY"):
-            model_kwargs = dict(model="gemini-2.0-flash", temperature=0.1)
+            model_kwargs = dict(model="gemini-2.5-pro-03-25", temperature=0.1)
             logger.info(f"Auto mode, using GOOGLE_API_KEY: {model_kwargs}")
-            return GenericLLMProvider.from_provider(provider="google_genai", **model_kwargs)
+            return GenericLLMProvider.from_provider(provider="google_genai", **model_kwargs), one_shot if one_shot is not None else True
 
         if os.environ.get("OPENAI_API_KEY"):
             model_kwargs = dict(model_name="gpt-4o", temperature=0.1)
             logger.info(f"Auto mode, using OPENAI_API_KEY: {model_kwargs}")
-            return GenericLLMProvider.from_provider(provider="openai", **model_kwargs)
+            return GenericLLMProvider.from_provider(provider="openai", **model_kwargs), one_shot if one_shot is not None else False
 
-    return GenericLLMProvider(llm)
+    return GenericLLMProvider(llm), one_shot if one_shot is not None else False

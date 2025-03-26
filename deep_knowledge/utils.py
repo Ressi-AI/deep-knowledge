@@ -108,7 +108,7 @@ def content_for_model(content: str, model_name: str) -> str:
     except:
         num_content_tokens = token_counter(text=content)
 
-    logger.info(f"Content token count: {num_content_tokens}")
+    logger.info(f"Content token count: {num_content_tokens:,}")
 
     if crt_model_cost is None:
         if num_content_tokens >= input_tokens_target(128_000):

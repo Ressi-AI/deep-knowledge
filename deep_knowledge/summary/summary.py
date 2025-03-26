@@ -313,7 +313,7 @@ def get_llm(llm: BaseChatModel | str = "auto", one_shot: Optional[bool] = None):
             raise ValueError("Auto mode working only with OpenAI or Google API keys. None of them detected.")
 
         if os.environ.get("GOOGLE_API_KEY"):
-            model_kwargs = dict(model="gemini-2.5-pro-03-25", temperature=0.1)
+            model_kwargs = dict(model="gemini-2.5-pro-exp-03-25", temperature=0.1)
             logger.info(f"Auto mode, using GOOGLE_API_KEY: {model_kwargs}")
             return GenericLLMProvider.from_provider(provider="google_genai", **model_kwargs), one_shot if one_shot is not None else True
 

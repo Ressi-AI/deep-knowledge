@@ -177,4 +177,5 @@ cython_debug/
 .pypirc
 *.sqlite3
 
-xperiments/
+_xperiments/
+_data/

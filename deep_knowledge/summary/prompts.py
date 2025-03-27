@@ -3,23 +3,32 @@ section_mind_map = "# MIND MAP\n<mind_map>\n{mind_map}\n</mind_map>"
 default_language = "English"
 
 # MIND MAP
-def system_prompt_mind_map_structural(language=None):
+def system_prompt_mind_map_structural(language=None, use_emoji=False):
     language = language or default_language
+
+    if use_emoji:
+        emoji_instruction_line = "- Use appropriate emojis at the last/detail level to enhance visual appeal and clarity\n"
+        detail_instruction_suffix = " (use emojis here)"
+        example_point_suffix = " with emoji"
+    else:
+        emoji_instruction_line = ""
+        detail_instruction_suffix = ""
+        example_point_suffix = ""
+
     prompt = f"""You are an expert in creating detailed, visually engaging mind maps.
 
 # Goal
 Create a comprehensive mind map of the [CONTENT TYPE] titled "[CONTENT TITLE]" by [CREATOR]. Structure it following the content's natural organization rather than imposing external categories.
 
 # Instructions
-1. Follow the content's actual structure precisely (sections, topics, segments)
-2. Use appropriate emojis ONLY before points at the last/detail level to enhance visual appeal and clarity
-3. Include multiple levels of detail:
+- Follow the content's actual structure precisely (sections, topics, segments)
+{emoji_instruction_line}- Include multiple levels of detail:
    - Main branches = major sections/themes/topics
    - Sub-branches = subtopics/segments/points
-   - Details = key points, concepts, and insights (use emojis here)
-4. For each section/topic, capture multiple key ideas (don't limit to just 3-5)
-5. Output as a hierarchical list with clear indentation to show relationships
-6. Begin with the content title as the central node
+   - Details = key points, concepts, and insights{detail_instruction_suffix}
+- For each section/topic, capture multiple key ideas (don't limit to just 3-5)
+- Output as a hierarchical list with clear indentation to show relationships
+- Begin with the content title as the central node
 
 # Content Types
 - For books: Follow parts/chapters/sections
@@ -32,19 +41,19 @@ Create a comprehensive mind map of the [CONTENT TYPE] titled "[CONTENT TITLE]" b
 # Example Format
 - [Content Title]
   - [Creator Information]
-    - 👤 Created by [Creator]
-    - 🗓️ Released/Published [Date/Year if relevant]
+    - Created by [Creator]
+    - Released/Published [Date/Year if relevant]
   
   - [Introduction/Overview]
-    - 🔑 [Key point with emoji]
-    - 💡 [Another key point with emoji]    
+    - [Key point{example_point_suffix}]
+    - [Another key point{example_point_suffix}]    
   
   - [Main Section/Topic 1]
     - [Subsection/Subtopic 1]
-      - 📊 [Key point with emoji]
-      - 🧩 [Another key point with emoji]
+      - [Key point{example_point_suffix}]
+      - [Another key point{example_point_suffix}]
     - [Subsection/Subtopic 2]
-      - 🔍 [Key point with emoji]
+      - [Key point{example_point_suffix}]
   33
   - [Main Section/Topic 2]
     ...
@@ -55,8 +64,14 @@ You MUST write the mind map in the following language: {language}.
     return prompt
 
 
-def system_prompt_mind_map_structural_conceptual(language=None):
+def system_prompt_mind_map_structural_conceptual(language=None, use_emoji=False):
     language = language or default_language
+    if use_emoji:
+        emoji_instruction_line = "   - Use appropriate emojis for detail-level points\n"
+        example_point_suffix = " with emoji"
+    else:
+        emoji_instruction_line = ""
+        example_point_suffix = ""
     prompt = f"""You are an expert in creating detailed, conceptual mind maps that reveal deeper patterns and frameworks.
 
 # Goal
@@ -70,8 +85,7 @@ Create a comprehensive conceptual mind map of [CONTENT TITLE] by [CREATOR] that 
 
 3. For each structural branch:
    - Map key ideas maintaining clear hierarchical relationships
-   - Use appropriate emojis for detail-level points
-   - Limit each branch to 3-7 key points to maintain clarity
+{emoji_instruction_line}   - Limit each branch to 3-7 key points to maintain clarity
 
 4. For conceptual branches:
    - Map how this concept evolves or appears across different sections
@@ -80,7 +94,7 @@ Create a comprehensive conceptual mind map of [CONTENT TITLE] by [CREATOR] that 
 
 # Cross-Connections
 5. After mapping primary branches, identify at least 5-7 important connections BETWEEN branches
-   - Format these as: [Concept A] ↔️ [Concept B]: [Brief explanation of relationship]
+   - Format these as: [Concept A] {'↔️' if use_emoji else '↔'} [Concept B]: [Brief explanation of relationship]
    - Look for unexpected relationships between seemingly unrelated ideas
 
 # Synthesis Elements 
@@ -95,22 +109,22 @@ Create a comprehensive conceptual mind map of [CONTENT TITLE] by [CREATOR] that 
 - Output as a clearly indented hierarchical list 
 - Use symbols to indicate relationships:
   - → for cause/effect
-  - ↔️ for mutual relationships
+  - ↔ for mutual relationships
   - ⊃ for "contains/includes"
   - ≠ for contrasting ideas
 
 # Example Format
 * [CONTENT TITLE]
-  * 📚 STRUCTURAL MAP
+  * {'📚 ' if use_emoji else ''}STRUCTURAL MAP
     * [Chapter/Section 1]
       * [Subsection]
-        * [Key point with emoji]
-        * [Another key point with emoji]    
+        * [Key point{example_point_suffix}]
+        * [Another key point{example_point_suffix}]    
         ... all key points ...
     * [Chapter/Section 2]
       ...
   
-  * 🧠 CONCEPTUAL MAP
+  * {'🧠 ' if use_emoji else ''}CONCEPTUAL MAP
     * [Core Concept 1]
       * Appears in [Section X] as [specific manifestation]
       * Evolves in [Section Y] through [how it changes]
@@ -118,15 +132,15 @@ Create a comprehensive conceptual mind map of [CONTENT TITLE] by [CREATOR] that 
     * [Core Concept 2]
       ...
   
-  * 🔄 CROSS-CONNECTIONS
-    * [Concept A] ↔️ [Concept B]: [Relationship explanation]
+  * {'🔄 ' if use_emoji else ''}CROSS-CONNECTIONS
+    * [Concept A] ↔ [Concept B]: [Relationship explanation]
     * [Chapter X idea] → [Chapter Y idea]: [How one influences the other]
     
-  * 🧩 KEY FRAMEWORKS
+  * {'🧩 ' if use_emoji else ''}KEY FRAMEWORKS
     * [Framework 1]: [Brief explanation of this mental model]
     * [Framework 2]: [Brief explanation of this mental model]
     
-  * 📈 EVOLUTION OF IDEAS
+  * {'📈 ' if use_emoji else ''}EVOLUTION OF IDEAS
     * [Central Idea]: [Starting point] → [Development] → [Final form]
 
 
@@ -252,9 +266,9 @@ For EACH module you create, you MUST:
    - Ensure these concepts are integrated naturally, not just mentioned
 
 4. KEY QUESTIONS:
-   - Directly and explicitly answer EVERY question listed in "KEY QUESTIONS TO ANSWER"
-   - Structure your content to address these questions in a logical flow
-   - Ensure no question remains unanswered
+   - Implicitly address EVERY question listed in "KEY QUESTIONS TO ANSWER" within the summary content
+   - Ensure the content naturally incorporates answers to these questions
+   - Maintain a logical flow that implicitly responds to all questions
 
 5. CONNECTIONS (if mentioned):
    - Create clear connection points to other modules as specified
@@ -300,8 +314,14 @@ def initial_prompt_content_synthesizer(content, extra_info=None):
     return prompt
 
 
-def system_prompt_one_shot(language=None):
+def system_prompt_one_shot(language=None, use_emoji=False):
     language = language or default_language
+    if use_emoji:
+        emoji_instruction_line = "   - Use appropriate emojis ONLY at the detail level for visual appeal\n"
+        example_point_suffix = " with emoji"
+    else:
+        emoji_instruction_line = ""
+        example_point_suffix = ""
     prompt = f"""You are a comprehensive content analysis system that processes information in a single pass. Your task is to analyze the provided content, create a detailed mind map, and then produce a modular summary based on that analysis. Follow these steps in sequence.
 
 ## STEP 1: CONTENT ANALYSIS & MIND MAP CREATION
@@ -317,8 +337,7 @@ First, analyze the content thoroughly and create a detailed mind map following t
 3. For the STRUCTURAL MAP:
    - Follow the content's natural structure precisely
    - Map key ideas maintaining clear hierarchical relationships
-   - Use appropriate emojis ONLY at the detail level for visual appeal
-   - Include multiple levels of detail with clear indentation
+{emoji_instruction_line}   - Include multiple levels of detail with clear indentation
 
 4. For the CONCEPTUAL MAP:
    - Identify how core concepts evolve or appear across different sections
@@ -342,15 +361,15 @@ First, analyze the content thoroughly and create a detailed mind map following t
 ```
 # MIND MAP: [CONTENT TITLE]
 
-## 📚 STRUCTURAL MAP
+## {'📚 ' if use_emoji else ''}STRUCTURAL MAP
 - [Main Section/Topic 1]
   - [Subsection/Subtopic 1.1]
-    - [Key point with emoji]
-    - [Another key point with emoji]
+    - [Key point{example_point_suffix}]
+    - [Another key point{example_point_suffix}]
   - [Subsection/Subtopic 1.2]
     ...
 
-## 🧠 CONCEPTUAL MAP
+## {'🧠 ' if use_emoji else ''}CONCEPTUAL MAP
 - [Core Concept 1]
   - Appears in [Section X] as [specific manifestation]
   - Evolves in [Section Y] through [how it changes]
@@ -358,17 +377,17 @@ First, analyze the content thoroughly and create a detailed mind map following t
 - [Core Concept 2]
   ...
 
-## 🔄 CROSS-CONNECTIONS
+## {'🔄 ' if use_emoji else ''}CROSS-CONNECTIONS
 - [Concept A] ↔️ [Concept B]: [Relationship explanation]
 - [Chapter X idea] → [Chapter Y idea]: [How one influences the other]
 ...
 
-## 🧩 KEY FRAMEWORKS
+## {'🧩 ' if use_emoji else ''}KEY FRAMEWORKS
 - [Framework 1]: [Brief explanation of this mental model]
 - [Framework 2]: [Brief explanation of this mental model]
 ...
 
-## 📈 EVOLUTION OF IDEAS
+## {'📈 ' if use_emoji else ''}EVOLUTION OF IDEAS
 - [Central Idea]: [Starting point] → [Development] → [Final form]
 ```
 
@@ -454,3 +473,15 @@ template_story_spine = """Please architect the summary to follow this structure,
 - Because of that... (How the hero gets back on track)
 - And ever since... (Share the new normal)
 - Until finally.. (The climax of the story)"""
+
+
+def messages_translate(text, target_lang):
+    prompt = f"""You are an expert language processor. Your task is to take the user's text, which might contain mixed languages, and ensure the entire meaning is accurately and fluently expressed in **{target_lang}**.
+If parts of the text are already in {target_lang}, preserve their meaning but ensure they fit naturally within the final {target_lang} output. Translate any parts that are not in {target_lang}.
+Maintain the overall structure and key directives present in the original text.
+VERY IMPORTANT: Output ONLY the final text fully expressed in {target_lang}. Do NOT include any explanations, apologies, introductions, or markdown formatting. Your entire response must be just the final text itself.
+"""
+    return [
+        {'role': 'system', 'content': prompt},
+        {'role': 'user', 'content': text},
+    ]

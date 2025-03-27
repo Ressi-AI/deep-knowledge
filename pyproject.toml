@@ -1,6 +1,6 @@
 [project]
 name = "deep-knowledge"
-version = "0.1.5"
+version = "0.1.6"
 description = "Deep Knowledge introduces a powerful multi-agent system for creating deep, comprehensive summaries of complex content."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -22,3 +22,9 @@ dependencies = [
 
 [tool.setuptools]
 packages = ["deep_knowledge"]
+
+[dependency-groups]
+dev = [
+    "md2pdf>=1.0.1",
+    "mistune>=3.1.3",
+]

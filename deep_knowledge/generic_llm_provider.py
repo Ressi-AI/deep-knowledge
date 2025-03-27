@@ -164,7 +164,7 @@ class GenericLLMProvider:
         before=before_log(logger, "DEBUG"),
         after=after_log(logger, "INFO")
     )
-    def get_chat_response(self, messages, stream, cost_callback=None, streaming_callback=None):
+    def get_chat_response(self, messages, stream=False, cost_callback=None, streaming_callback=None):
         def remove_thinking(text):
             # Remove content between <think> and </think> tags
             return re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()

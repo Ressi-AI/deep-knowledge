@@ -37,6 +37,7 @@ from deep_knowledge.summary.prompts import (
 
     template_extended,
     template_story_spine,
+    messages_translate,
 )
 
 """
@@ -70,21 +71,27 @@ class Summary:
             target_word_count: Optional[int] = None,
             template: Literal["extended", "story_spine"] | None = None,
             one_shot: Optional[bool] = None,
+            use_emoji: Optional[bool] = False,
     ):
+        self.language = language
+        self.target_word_count = target_word_count
+        if self.target_word_count == 0:
+            self.target_word_count = None
+        self.use_emoji = use_emoji
         self.llm, self.one_shot = get_llm(llm, one_shot)
         self.model_name = model_name_from_langchain_instance(self.llm.llm)
         _, self.litellm_model_name = model_cost(self.model_name)
         self.input_path = input_path
         self.input_documents = input_documents
         self.input_content = input_content
-        self.target_word_count = target_word_count
         self.template = template
-        self._extra_instructions = extra_instructions
+        self.extra_instructions = self._create_extra_instructions(extra_instructions)
+        if len(self.extra_instructions) == 0:
+            self.extra_instructions = None
         self.stream = stream
         self.streaming_callback = streaming_callback
         if self.stream and self.streaming_callback is None:
             self.streaming_callback = default_stream_callback
-        self.language = language
         self.content = None
         self.final_input = None
         self.mind_map = None
@@ -96,9 +103,9 @@ class Summary:
         self.token_usage_lock = Lock()
         return
 
-    @property
-    def extra_instructions(self):
-        extra_instructions = self._extra_instructions or ""
+    def _create_extra_instructions(self, extra_instructions=None):
+        original_extra_instructions = extra_instructions or ""
+        extra_instructions = original_extra_instructions
         extra_instructions += "\n\n"
         if self.template == "extended":
             extra_instructions += template_extended
@@ -109,8 +116,26 @@ class Summary:
             if self.target_word_count is None:
                 self.target_word_count = 750
 
-        extra_instructions += f"\nVery important! Your summary should count approximately {self.target_word_count} words."
+        if self.target_word_count is not None:
+            extra_instructions += f"\nVery important! Your summary should count approximately {self.target_word_count} words."
+
         extra_instructions = extra_instructions.strip()
+
+        if len(extra_instructions) == 0:
+            return extra_instructions
+
+        if (self.language or '').lower() in ['', 'english', 'en', 'eng']:
+            return extra_instructions
+
+        if extra_instructions == original_extra_instructions:
+            # No template or word count specified as param, thus we did not enhance the prompt with english content
+            return extra_instructions
+
+        logger.debug(f"Translating extra instructions into target language {self.language}")
+        extra_instructions = self.llm.get_chat_response(
+            messages=messages_translate(extra_instructions, self.language)
+        )
+        logger.debug(f"Translation done:\n{extra_instructions}")
         return extra_instructions
 
     def _cost_callback(self, output, model, messages=None, output_content=None):
@@ -201,7 +226,15 @@ class Summary:
             self.generate_full_summary()
         else:
             self.generate_full_summary_one_shot()
+        self.cleanup()
         self.log_usage()
+        return
+
+    def cleanup(self):
+        self.output = self.output.strip('```')
+        self.output = self.output.lstrip('markdown')
+        if self.language is not None:
+            self.output = self.output.lstrip(self.language).lstrip(self.language.lower())
         return
 
     def generate_mind_map(self):
@@ -210,7 +243,7 @@ class Summary:
         logger.info("=== Step 1 === Generating Mind Map")
         self.mind_map = self.llm.get_chat_response(
             messages=[
-                SystemMessage(system_prompt_mind_map_structural_conceptual(language=self.language)),
+                SystemMessage(system_prompt_mind_map_structural_conceptual(language=self.language, use_emoji=self.use_emoji)),
                 HumanMessage(initial_prompt_mind_map(content=self.final_input))
             ],
             stream=self.stream,
@@ -250,7 +283,7 @@ class Summary:
 
         self.output = self.llm.get_chat_response(
             messages=[
-                SystemMessage(system_prompt_one_shot(language=self.language)),
+                SystemMessage(system_prompt_one_shot(language=self.language, use_emoji=self.use_emoji)),
                 HumanMessage(initial_prompt_one_shot(content=self.final_input, extra_info=self.extra_instructions))
             ],
             stream=self.stream,
@@ -267,7 +300,7 @@ class Summary:
         if self.streaming_callback is not None:
             self.streaming_callback({"type": "event", "event_type": "start", "stage": "content_synthesizer", "content": "Generating Full Summary"})
         logger.info("=== Step 3 === Generating Full Summary")
-        batches = batch_modules(modules=self.summary_modules)
+        batches = batch_modules(modules=self.summary_modules, max_words_per_batch=2000)
         dump_all_modules = "\n".join([x.module_heading for x in self.summary_modules])
         summaries = []
         raw_output = False

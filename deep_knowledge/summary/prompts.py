@@ -189,9 +189,10 @@ Analyze the content's unique characteristics and create a series of clear, speci
 
 3. For EACH module, explicitly format as:
 <MODULE>
-MODULE #[number]: [title]
-WORD COUNT: [count]
-
+<INDEX>[Number of the module 1-N]</INDEX>
+<TITLE>[title]</TITLE>
+<WORD_COUNT>[count]</WORD_COUNT>
+<DETAILS>
 INSTRUCTIONS FOR CONTENT SYNTHESIZER:
 [Detailed instructions including all required elements]
 
@@ -203,6 +204,7 @@ KEY QUESTIONS TO ANSWER:
 
 CONNECTION POINTS: (Optional)
 [How this module connects to others]
+</DETAILS>
 </MODULE>
 
 # Remember
@@ -214,9 +216,7 @@ CONNECTION POINTS: (Optional)
 # Language Requirements
 - You MUST write all content in {language}
 - KEEP THE FOLLOWING STRUCTURAL KEYWORDS IN ENGLISH EXACTLY AS WRITTEN (do not translate these):
-  * "<MODULE>" and "</MODULE>" tags
-  * "MODULE #"
-  * "WORD COUNT:"
+  * "<MODULE>", "<INDEX>", "<TITLE>", "<WORD_COUNT>", "<DETAILS>" tags
   * etc.
 - Only translate the actual content after each heading, not the headings themselves
 """
@@ -277,15 +277,13 @@ For EACH module you create, you MUST:
 # Output Format
 For each module, you MUST use the following format:
 
-```xml
 <SYNTHESIS>
-MODULE_INDEX: [Number of the module]
-MODULE_TITLE: [Title of the module]
+<INDEX>[Number of the module]</INDEX>
+<TITLE>[Title of the module]</TITLE>
 <CONTENT>
 [The actual synthesis content here]
 </CONTENT>
 </SYNTHESIS>
-```
 
 # PROCESS CHECKLIST
 Before submitting each module, verify that you have:
@@ -299,9 +297,8 @@ Before submitting each module, verify that you have:
 - You MUST write all content in {language}
 - KEEP THE FOLLOWING STRUCTURAL KEYWORDS IN ENGLISH EXACTLY AS WRITTEN (do not translate these):
   * "<SYNTHESIS>" and "</SYNTHESIS>" tags
-  * "MODULE_INDEX"
-  * "MODULE_TITLE"
   * "<CONTENT>" and "</CONTENT>" tags
+  * "<INDEX>", "</INDEX>", "<TITLE>", "</TITLE>" tags
 - Only translate the actual content after each heading, not the headings themselves
 """
     return prompt

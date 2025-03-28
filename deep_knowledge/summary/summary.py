@@ -301,14 +301,14 @@ class Summary:
             self.streaming_callback({"type": "event", "event_type": "start", "stage": "content_synthesizer", "content": "Generating Full Summary"})
         logger.info("=== Step 3 === Generating Full Summary")
         batches = batch_modules(modules=self.summary_modules, max_words_per_batch=2000)
-        dump_all_modules = "\n".join([x.module_heading for x in self.summary_modules])
+        dump_all_modules = "\n".join([x.heading() for x in self.summary_modules])
         summaries = []
         raw_output = False
         syntheses = []
         for batch in batches:
             module_specifications = []
             for i, module in enumerate(batch):
-                module_specifications.append(module.full_content)
+                module_specifications.append(module.full_content())
             if len(batches) > 1:
                 module_specifications.append(f"---\nFor reference, here's the list of all modules, BUT YOU SHOULD ONLY WORK ON THE MODULES IN THIS BATCH, mentioned above:\n{dump_all_modules}")
             module_specifications = "\n\n".join(module_specifications)

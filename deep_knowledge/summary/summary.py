@@ -28,6 +28,7 @@ from deep_knowledge.summary.prompts import (
 
     system_prompt_summary_architect,
     initial_prompt_summary_architect,
+    follow_up_word_count_summary_architecture,
 
     system_prompt_content_synthesizer,
     initial_prompt_content_synthesizer,
@@ -69,7 +70,7 @@ class Summary:
             stream: Optional[bool] = False,
             streaming_callback: Optional[callable] = None,
             target_word_count: Optional[int] = None,
-            template: Literal["extended", "story_spine"] | None = None,
+            template: Literal["extended", "story_spine", "default"] | None = None,
             one_shot: Optional[bool] = None,
             use_emoji: Optional[bool] = False,
     ):
@@ -85,6 +86,8 @@ class Summary:
         self.input_documents = input_documents
         self.input_content = input_content
         self.template = template
+        if self.template == "default":
+            self.template = None
         self.extra_instructions = self._create_extra_instructions(extra_instructions)
         if len(self.extra_instructions) == 0:
             self.extra_instructions = None
@@ -254,17 +257,18 @@ class Summary:
             self.streaming_callback({"type": "event", "event_type": "stop", "stage": "mind_map", "content": "Finished generating Mind Map"})
         return
 
-    def generate_summary_architecture(self):
+    def generate_summary_architecture(self, entry=0, follow_up=None):
         if self.streaming_callback is not None:
             self.streaming_callback({"type": "event", "event_type": "start", "stage": "summary_architect", "content": "Generating Summary Architecture"})
         logger.info("=== Step 2 === Generating Summary Architecture")
+        messages = [
+            SystemMessage(system_prompt_summary_architect(language=self.language)),
+            HumanMessage(initial_prompt_summary_architect(
+                content=self.final_input, mind_map=self.mind_map, extra_info=self.extra_instructions
+            ))
+        ] + (follow_up or [])
         self.summary_architecture = self.llm.get_chat_response(
-            messages=[
-                SystemMessage(system_prompt_summary_architect(language=self.language)),
-                HumanMessage(initial_prompt_summary_architect(
-                    content=self.final_input, mind_map=self.mind_map, extra_info=self.extra_instructions
-                ))
-            ],
+            messages=messages,
             stream=self.stream,
             streaming_callback=self.streaming_callback,
             cost_callback=partial(self._cost_callback, model=self.litellm_model_name),
@@ -275,6 +279,18 @@ class Summary:
         logger.info(f"Final summary is attempting to be {wc} words long")
         if self.streaming_callback is not None:
             self.streaming_callback({"type": "event", "event_type": "stop", "stage": "summary_architect", "content": "Finished generating Summary Architecture"})
+
+        if self.target_word_count is not None and entry == 0:
+            diff = abs(wc - self.target_word_count)
+            if diff / self.target_word_count > 0.5:
+                logger.warning(f"Final summary is {wc} words long, but target was {self.target_word_count}")
+                self.generate_summary_architecture(
+                    follow_up=[
+                        AIMessage(content=self.summary_architecture),
+                        HumanMessage(content=follow_up_word_count_summary_architecture(wc, self.target_word_count)),
+                    ],
+                    entry=entry + 1,
+                )
         return
 
     def generate_full_summary_one_shot(self):
@@ -308,7 +324,7 @@ class Summary:
         for batch in batches:
             module_specifications = []
             for i, module in enumerate(batch):
-                module_specifications.append(module.full_content())
+                module_specifications.append("---\n" + module.full_content())
             if len(batches) > 1:
                 module_specifications.append(f"---\nFor reference, here's the list of all modules, BUT YOU SHOULD ONLY WORK ON THE MODULES IN THIS BATCH, mentioned above:\n{dump_all_modules}")
             module_specifications = "\n\n".join(module_specifications)

@@ -482,3 +482,10 @@ VERY IMPORTANT: Output ONLY the final text fully expressed in {target_lang}. Do 
         {'role': 'system', 'content': prompt},
         {'role': 'user', 'content': text},
     ]
+
+
+def follow_up_word_count_summary_architecture(current_word_count, target_word_count):
+    prompt = f"You designed final summary to be {current_word_count} words long, but target was {target_word_count}. Please revise your modular assignments."
+    if current_word_count == 0:
+        prompt += "\nMost probably, you did not generate correct XML tags to be able to extract word count."
+    return prompt
